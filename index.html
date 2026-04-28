@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>業務時間管理アプリ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --secondary-color: #64748b;
+            --secondary-hover: #475569;
+            --success-color: #10b981;
+            --success-hover: #059669;
+            --danger-color: #ef4444;
+            --danger-hover: #dc2626;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --border-radius: 16px;
+            --transition-speed: 0.2s;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 2rem 1rem;
+            background-image: radial-gradient(circle at top right, #e0e7ff 0%, transparent 40%),
+                              radial-gradient(circle at bottom left, #dcfce7 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Dashboard Section */
+        .dashboard-header {
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .dashboard-header h2 {
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem 0;
+        }
+
+        .chart-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            background-color: var(--bg-color);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .chart-wrapper:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .pie-chart {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: conic-gradient(var(--primary-color) 0%, var(--primary-color) 0%, #e2e8f0 0%, #e2e8f0 100%);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.75rem;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            transition: background 0.5s ease-out;
+        }
+
+        .pie-chart::after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background-color: var(--bg-color);
+            border-radius: 50%;
+        }
+
+        .pie-chart-text {
+            position: absolute;
+            z-index: 1;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .chart-task-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            color: var(--text-main);
+            word-break: break-all;
+        }
+
+        .chart-task-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .target-edit-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 0.7rem;
+            margin-left: 0.25rem;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+
+        .chart-wrapper:hover .target-edit-btn {
+            opacity: 1;
+        }
+
+        /* Timer Section */
+        .task-selector {
+            margin-bottom: 2rem;
+        }
+
+        .task-selector label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .select-wrapper {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        select {
+            flex-grow: 1;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            font-size: 1rem;
+            font-family: inherit;
+            color: var(--text-main);
+            background-color: var(--card-bg);
+            cursor: pointer;
+            transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.2rem;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+
+        .icon-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all var(--transition-speed);
+        }
+
+        .icon-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .timer-display {
+            font-size: 5rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 2rem 0 1.5rem 0;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-main);
+            letter-spacing: -0.05em;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all var(--transition-speed);
+            font-family: inherit;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .primary-btn {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.39);
+        }
+
+        .primary-btn:hover:not(:disabled) {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.23);
+        }
+
+        .secondary-btn {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .secondary-btn:hover:not(:disabled) {
+            background-color: #e2e8f0;
+            transform: translateY(-1px);
+        }
+
+        .success-btn {
+            background-color: var(--success-color);
+            color: white;
+            box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.39);
+        }
+
+        .success-btn:hover:not(:disabled) {
+            background-color: var(--success-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.23);
+        }
+
+        .text-btn {
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            padding: 0.5rem;
+        }
+
+        .text-btn:hover {
+            color: var(--danger-color);
+        }
+
+        /* History Section */
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .history-header h2 {
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .total-time {
+            font-weight: 700;
+            color: var(--primary-color);
+            background-color: #e0e7ff;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.875rem;
+        }
+
+        .history-list {
+            list-style: none;
+            max-height: 300px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
+        }
+
+        .history-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .history-list::-webkit-scrollbar-thumb {
+            background-color: var(--border-color);
+            border-radius: 3px;
+        }
+
+        .history-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 8px;
+            background-color: var(--bg-color);
+            margin-bottom: 0.75rem;
+            transition: transform 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .history-list li:hover {
+            transform: translateX(4px);
+            border-color: var(--border-color);
+        }
+
+        .history-list .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            background: transparent;
+            padding: 2rem 0;
+            border: 1px dashed var(--border-color);
+        }
+
+        .history-list li .task-name {
+            font-weight: 600;
+        }
+
+        .history-list li .task-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .history-list li .task-progress-note {
+            font-size: 0.85rem;
+            color: var(--text-main);
+            margin-top: 0.25rem;
+            background-color: #f1f5f9;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .history-list li .task-duration {
+            font-family: monospace;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .history-list li .task-time {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .history-actions {
+            margin-top: 1rem;
+            text-align: right;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover {
+            color: var(--text-main);
+        }
+
+        .modal-content h2 {
+            margin-bottom: 1.5rem;
+            font-size: 1.25rem;
+        }
+
+        .modal-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-section label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        .modal-select {
+            width: 100%;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .input-group input {
+            flex-grow: 1;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .modal-subtitle {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-top: 1rem;
+        }
+
+        .manage-task-list {
+            list-style: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .manage-task-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--bg-color);
+            font-size: 0.9rem;
+        }
+
+        .manage-task-list li .todo-category {
+            font-size: 0.75rem;
+            color: var(--primary-color);
+            background: #e0e7ff;
+            padding: 0.1rem 0.4rem;
+            border-radius: 4px;
+            margin-right: 0.5rem;
+        }
+
+        .manage-task-list li:last-child {
+            border-bottom: none;
+        }
+
+        .delete-task-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .delete-task-btn:hover {
+            color: var(--danger-color);
+            background-color: #fee2e2;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .timer-display {
+                font-size: 4rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fa-solid fa-stopwatch"></i> TimeTracker</h1>
+            <p>業務時間をシンプルに管理</p>
+        </header>
+
+        <main>
+            <!-- ダッシュボードセクション -->
+            <section class="card dashboard-card">
+                <div class="dashboard-header">
+                    <h2><i class="fa-solid fa-chart-pie"></i> 今日の業務進捗</h2>
+                </div>
+                <div class="charts-container" id="chartsContainer">
+                    <!-- JSで円グラフが動的に追加されます -->
+                </div>
+            </section>
+
+            <!-- タイマーセクション -->
+            <section class="card timer-card">
+                <div class="task-selector">
+                    <label for="taskSelect">現在のToDoを選択:</label>
+                    <div class="select-wrapper">
+                        <select id="taskSelect">
+                            <!-- JSで動的に追加されます -->
+                        </select>
+                        <button id="openAddModalBtn" class="icon-btn" title="ToDoを追加"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                </div>
+
+                <div class="timer-display" id="timeDisplay">
+                    00:00:00
+                </div>
+
+                <div class="controls">
+                    <button id="startPauseBtn" class="btn primary-btn">
+                        <i class="fa-solid fa-play"></i> スタート
+                    </button>
+                    <button id="resetBtn" class="btn secondary-btn">
+                        <i class="fa-solid fa-arrow-rotate-left"></i> リセット
+                    </button>
+                    <button id="completeBtn" class="btn success-btn" disabled>
+                        <i class="fa-solid fa-check"></i> 完了して記録
+                    </button>
+                </div>
+            </section>
+
+            <!-- 履歴セクション -->
+            <section class="card history-card">
+                <div class="history-header">
+                    <h2><i class="fa-solid fa-list-ul"></i> 今日の作業履歴</h2>
+                    <div class="total-time" id="totalTimeDisplay">合計: 00:00:00</div>
+                </div>
+                
+                <ul id="historyList" class="history-list">
+                    <!-- JSで履歴が追加されます -->
+                    <li class="empty-state">まだ今日の作業履歴はありません</li>
+                </ul>
+                <div class="history-actions">
+                    <button id="clearHistoryBtn" class="btn text-btn"><i class="fa-solid fa-trash-can"></i> 履歴をクリア</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ToDo追加モーダル -->
+    <div id="addTaskModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeModalBtn">&times;</span>
+            <h2>新しいToDoを追加</h2>
+            
+            <div class="modal-section">
+                <label for="categorySelect">業務カテゴリ:</label>
+                <div class="input-group">
+                    <select id="categorySelect" class="modal-select"></select>
+                    <button id="addCategoryBtn" class="btn secondary-btn" title="新しいカテゴリを作成"><i class="fa-solid fa-folder-plus"></i> 作成</button>
+                </div>
+            </div>
+
+            <div class="modal-section">
+                <label for="newTodoInput">ToDo名（やること）:</label>
+                <div class="input-group">
+                    <input type="text" id="newTodoInput" placeholder="例: 動画Aの確認, 記事の執筆">
+                    <button id="addTaskBtn" class="btn primary-btn">追加</button>
+                </div>
+            </div>
+            
+            <h3 class="modal-subtitle">今日のToDoリスト</h3>
+            <ul id="manageTaskList" class="manage-task-list">
+                <!-- JSでToDoリストが追加されます -->
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 初期データ
+        const DEFAULT_CATEGORIES = ['動画確認', 'MEO対策', 'インスタ投稿'];
+        const STORAGE_KEY_CATEGORIES = 'timeTracker_categories';
+        const STORAGE_KEY_TODOS = 'timeTracker_todos';
+        const STORAGE_KEY_HISTORY = 'timeTracker_history';
+
+        // DOM要素
+        const taskSelect = document.getElementById('taskSelect'); // Timer画面のToDo選択
+        const timeDisplay = document.getElementById('timeDisplay');
+        const startPauseBtn = document.getElementById('startPauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const completeBtn = document.getElementById('completeBtn');
+        const historyList = document.getElementById('historyList');
+        const totalTimeDisplay = document.getElementById('totalTimeDisplay');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+        const chartsContainer = document.getElementById('chartsContainer');
+
+        // モーダル要素
+        const modal = document.getElementById('addTaskModal');
+        const openModalBtn = document.getElementById('openAddModalBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const categorySelect = document.getElementById('categorySelect');
+        const addCategoryBtn = document.getElementById('addCategoryBtn');
+        const newTodoInput = document.getElementById('newTodoInput');
+        const addTaskBtn = document.getElementById('addTaskBtn');
+        const manageTaskList = document.getElementById('manageTaskList');
+
+        // 状態変数
+        let categories = [];
+        let todos = []; // { id, category, name, isCompleted }
+        let history = []; // { id, category, todoName, duration, dateString, timeString, timestamp }
+        let timerInterval = null;
+        let startTime = 0;
+        let elapsedTime = 0;
+        let isRunning = false;
+        let currentTodoId = null;
+
+        // --- 初期化 ---
+        function init() {
+            loadData();
+            renderCategorySelect();
+            renderTaskOptions();
+            renderTodoList();
+            renderHistory();
+            renderDashboard();
+            setupEventListeners();
+        }
+
+        // --- データ管理 ---
+        function loadData() {
+            const savedCategories = localStorage.getItem(STORAGE_KEY_CATEGORIES);
+            if (savedCategories) {
+                categories = JSON.parse(savedCategories);
+            } else {
+                categories = [...DEFAULT_CATEGORIES];
+                saveCategories();
+            }
+
+            const savedTodos = localStorage.getItem(STORAGE_KEY_TODOS);
+            if (savedTodos) {
+                todos = JSON.parse(savedTodos);
+            } else {
+                todos = [];
+                saveTodos();
+            }
+
+            const savedHistory = localStorage.getItem(STORAGE_KEY_HISTORY);
+            if (savedHistory) {
+                history = JSON.parse(savedHistory);
+            }
+        }
+
+        function saveCategories() {
+            localStorage.setItem(STORAGE_KEY_CATEGORIES, JSON.stringify(categories));
+        }
+
+        function saveTodos() {
+            localStorage.setItem(STORAGE_KEY_TODOS, JSON.stringify(todos));
+        }
+
+        function saveHistory() {
+            localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(history));
+        }
+
+        // --- UI更新 ---
+        function renderCategorySelect() {
+            categorySelect.innerHTML = '';
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                categorySelect.appendChild(option);
+            });
+        }
+
+        function renderTaskOptions() {
+            taskSelect.innerHTML = '';
+            
+            // 今日の未完了ToDoのみを抽出
+            const incompleteTodos = todos.filter(t => !t.isCompleted);
+
+            if (incompleteTodos.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'やること（ToDo）を追加してください';
+                taskSelect.appendChild(option);
+            } else {
+                incompleteTodos.forEach(todo => {
+                    const option = document.createElement('option');
+                    option.value = todo.id;
+                    option.textContent = `[${todo.category}] ${todo.name}`;
+                    taskSelect.appendChild(option);
+                });
+            }
+        }
+
+        function renderTodoList() {
+            manageTaskList.innerHTML = '';
+            
+            if (todos.length === 0) {
+                manageTaskList.innerHTML = '<li class="empty-state">まだToDoがありません</li>';
+                return;
+            }
+
+            // 完了・未完了問わずすべてのToDoを表示
+            todos.forEach((todo, index) => {
+                const li = document.createElement('li');
+                const statusIcon = todo.isCompleted ? '<i class="fa-solid fa-check" style="color: var(--success-color);"></i>' : '';
+                li.innerHTML = `
+                    <div>
+                        <span class="todo-category">${todo.category}</span>
+                        <span style="${todo.isCompleted ? 'text-decoration: line-through; color: var(--text-muted);' : ''}">${todo.name} ${statusIcon}</span>
+                    </div>
+                    <button class="delete-task-btn" data-id="${todo.id}" title="削除">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                manageTaskList.appendChild(li);
+            });
+
+            document.querySelectorAll('.delete-task-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.getAttribute('data-id');
+                    deleteTodo(Number(id));
+                });
+            });
+        }
+
+        function renderDashboard() {
+            if (!chartsContainer) return;
+            chartsContainer.innerHTML = '';
+
+            categories.forEach(category => {
+                const categoryTodos = todos.filter(t => t.category === category);
+                const total = categoryTodos.length;
+                
+                // ToDoが0個のカテゴリはグラフを作らない
+                if (total === 0) return; 
+
+                const completed = categoryTodos.filter(t => t.isCompleted).length;
+                
+                let percentage = Math.floor((completed / total) * 100);
+                if (percentage > 100) percentage = 100;
+                
+                const deg = (percentage / 100) * 360;
+                const color = percentage === 100 ? 'var(--success-color)' : 'var(--primary-color)';
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'chart-wrapper';
+                wrapper.innerHTML = `
+                    <div class="pie-chart" style="background: conic-gradient(${color} ${deg}deg, #e2e8f0 ${deg}deg, #e2e8f0 360deg)">
+                        <span class="pie-chart-text">${percentage}%</span>
+                    </div>
+                    <div class="chart-task-name">${category}</div>
+                    <div class="chart-task-time">
+                        ${completed} / ${total} 完了
+                    </div>
+                `;
+                chartsContainer.appendChild(wrapper);
+            });
+            
+            if(chartsContainer.innerHTML === '') {
+                chartsContainer.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">右上の「+」ボタンからToDoを登録すると、ここにグラフが表示されます。</p>';
+            }
+        }
+
+        // --- ToDo操作 ---
+        function addCategory() {
+            const newCat = prompt('新しい業務カテゴリ名を入力してください:');
+            if (newCat && newCat.trim() !== '') {
+                const trimmed = newCat.trim();
+                if (!categories.includes(trimmed)) {
+                    categories.push(trimmed);
+                    saveCategories();
+                    renderCategorySelect();
+                    categorySelect.value = trimmed;
+                } else {
+                    alert('そのカテゴリはすでに存在します。');
+                }
+            }
+        }
+
+        function addTodo() {
+            const cat = categorySelect.value;
+            const name = newTodoInput.value.trim();
+            
+            if (!cat) {
+                alert('カテゴリを選択または作成してください。');
+                return;
+            }
+            
+            if (name) {
+                const newTodo = {
+                    id: Date.now(),
+                    category: cat,
+                    name: name,
+                    isCompleted: false
+                };
+                todos.push(newTodo);
+                saveTodos();
+                
+                newTodoInput.value = '';
+                renderTaskOptions();
+                renderTodoList();
+                renderDashboard();
+            }
+        }
+
+        function deleteTodo(id) {
+            if (confirm('このToDoを削除してもよろしいですか？')) {
+                todos = todos.filter(t => t.id !== id);
+                saveTodos();
+                renderTaskOptions();
+                renderTodoList();
+                renderDashboard();
+            }
+        }
+
+        // --- タイマー機能 ---
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            const pad = (num) => num.toString().padStart(2, '0');
+            return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+        }
+
+        function updateDisplay() {
+            timeDisplay.textContent = formatTime(elapsedTime);
+        }
+
+        function startPauseTimer() {
+            const todoId = taskSelect.value;
+            if (!todoId) {
+                alert('やること（ToDo）が登録されていないか、選択されていません。追加してください。');
+                return;
+            }
+
+            if (isRunning) {
+                // Pause
+                clearInterval(timerInterval);
+                isRunning = false;
+                startPauseBtn.innerHTML = '<i class="fa-solid fa-play"></i> 再開';
+                startPauseBtn.classList.remove('secondary-btn');
+                startPauseBtn.classList.add('primary-btn');
+            } else {
+                // Start
+                currentTodoId = Number(todoId);
+                startTime = Date.now() - elapsedTime;
+                timerInterval = setInterval(() => {
+                    elapsedTime = Date.now() - startTime;
+                    updateDisplay();
+                }, 1000);
+                isRunning = true;
+                startPauseBtn.innerHTML = '<i class="fa-solid fa-pause"></i> 一時停止';
+                startPauseBtn.classList.remove('primary-btn');
+                startPauseBtn.classList.add('secondary-btn');
+                completeBtn.disabled = false;
+                taskSelect.disabled = true; // 計測中はタスク変更不可
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            elapsedTime = 0;
+            currentTodoId = null;
+            updateDisplay();
+            startPauseBtn.innerHTML = '<i class="fa-solid fa-play"></i> スタート';
+            startPauseBtn.classList.remove('secondary-btn');
+            startPauseBtn.classList.add('primary-btn');
+            completeBtn.disabled = true;
+            taskSelect.disabled = false;
+        }
+
+        function completeTimer() {
+            if (elapsedTime === 0 || !currentTodoId) return;
+
+            const todoIndex = todos.findIndex(t => t.id === currentTodoId);
+            if (todoIndex === -1) return;
+
+            const todo = todos[todoIndex];
+            todo.isCompleted = true; // ToDoを完了状態にする
+            saveTodos();
+
+            const now = new Date();
+            const dateString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            const timeString = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+            const record = {
+                id: Date.now(),
+                category: todo.category,
+                todoName: todo.name,
+                duration: elapsedTime,
+                dateString: dateString,
+                timeString: timeString,
+                timestamp: now.getTime()
+            };
+
+            history.unshift(record); // 最新を先頭に
+            saveHistory();
+            
+            renderHistory();
+            renderDashboard();
+            renderTaskOptions(); // 未完了から消えるため更新
+            renderTodoList(); // モーダル内のリストも完了表示に更新
+            
+            resetTimer();
+        }
+
+        // --- 履歴管理 ---
+        function renderHistory() {
+            historyList.innerHTML = '';
+            
+            // 今日の日付を取得
+            const now = new Date();
+            const todayString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+            // 今日の履歴のみをフィルタリング
+            const todayHistory = history.filter(record => record.dateString === todayString);
+
+            if (todayHistory.length === 0) {
+                historyList.innerHTML = '<li class="empty-state">まだ今日の作業履歴はありません</li>';
+                totalTimeDisplay.textContent = '合計: 00:00:00';
+                return;
+            }
+
+            let totalMs = 0;
+
+            todayHistory.forEach(record => {
+                totalMs += record.duration;
+
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div>
+                        <div class="task-name"><span class="todo-category" style="font-size: 0.75rem; color: var(--primary-color); background: #e0e7ff; padding: 0.1rem 0.4rem; border-radius: 4px; margin-right: 0.5rem;">${record.category}</span>${record.todoName}</div>
+                        <div class="task-time" style="margin-top: 0.25rem;"><i class="fa-regular fa-clock"></i> ${record.timeString} 完了</div>
+                    </div>
+                    <div class="task-duration">${formatTime(record.duration)}</div>
+                `;
+                historyList.appendChild(li);
+            });
+
+            totalTimeDisplay.textContent = `合計: ${formatTime(totalMs)}`;
+        }
+
+        function clearTodayHistory() {
+            if (confirm('今日の履歴をすべて削除しますか？\n（この操作は元に戻せません）')) {
+                const now = new Date();
+                const todayString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                
+                // 今日以外の履歴だけを残す
+                history = history.filter(record => record.dateString !== todayString);
+                saveHistory();
+                renderHistory();
+            }
+        }
+
+        function clearCompletedTodos() {
+            if (confirm('完了済みのToDoをリストから一括削除しますか？\n（作業履歴には影響しません）')) {
+                todos = todos.filter(t => !t.isCompleted);
+                saveTodos();
+                renderTodoList();
+                renderDashboard(); // 全体が減るのでゲージが変わる
+            }
+        }
+
+        // --- イベントリスナー設定 ---
+        function setupEventListeners() {
+            // タイマー制御
+            startPauseBtn.addEventListener('click', startPauseTimer);
+            resetBtn.addEventListener('click', () => {
+                if (elapsedTime > 0 && confirm('タイマーをリセットしますか？（記録されません）')) {
+                    resetTimer();
+                } else if (elapsedTime === 0) {
+                    resetTimer();
+                }
+            });
+            completeBtn.addEventListener('click', completeTimer);
+            clearHistoryBtn.addEventListener('click', clearTodayHistory);
+
+            // モーダル制御
+            openModalBtn.addEventListener('click', () => {
+                modal.classList.add('show');
+                newTodoInput.focus();
+            });
+
+            closeModalBtn.addEventListener('click', () => {
+                modal.classList.remove('show');
+            });
+
+            window.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('show');
+                }
+            });
+
+            // ToDo操作
+            addCategoryBtn.addEventListener('click', addCategory);
+            addTaskBtn.addEventListener('click', addTodo);
+            newTodoInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    addTodo();
+                }
+            });
+        }
+
+        // アプリケーション起動
+        init();
+    </script>
+</body>
+</html>
